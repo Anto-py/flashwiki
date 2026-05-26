@@ -1,10 +1,14 @@
 # syntax=docker/dockerfile:1
 
 # Stage 1 — build du frontend Vite
+# --include=dev force l'installation des devDependencies même si
+# NODE_ENV=production est injecté par l'environnement de build (Coolify).
+# Sans ça, vite (devDep) n'est pas installé et `npm run build` plante.
 FROM node:20-alpine AS frontend-builder
 WORKDIR /build
+ENV NODE_ENV=development
 COPY frontend/package.json frontend/package-lock.json* ./
-RUN npm install
+RUN npm install --include=dev
 COPY frontend/ ./
 RUN npm run build
 
