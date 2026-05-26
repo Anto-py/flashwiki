@@ -1,0 +1,50 @@
+import express from 'express';
+import cors from 'cors';
+import helmet from 'helmet';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { waitForDb } from './db/client.js';
+import dashboardRouter from './routes/dashboard.js';
+import sessionRouter from './routes/session.js';
+import summaryRouter from './routes/summary.js';
+import settingsRouter from './routes/settings.js';
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const PORT = Number(process.env.PORT) || 3000;
+
+const app = express();
+
+app.use(
+  helmet({
+    contentSecurityPolicy: false,
+  })
+);
+app.use(cors());
+app.use(express.json());
+
+app.get('/api/health', (_req, res) => res.json({ ok: true }));
+
+app.use('/api/dashboard', dashboardRouter);
+app.use('/api/session', sessionRouter);
+app.use('/api/summary', summaryRouter);
+app.use('/api/settings', settingsRouter);
+
+const frontendDist = path.resolve(__dirname, '..', 'frontend', 'dist');
+app.use(express.static(frontendDist));
+app.get(/^\/(?!api\/).*/, (_req, res) => {
+  res.sendFile(path.join(frontendDist, 'index.html'), (err) => {
+    if (err) res.status(404).send('frontend build not available');
+  });
+});
+
+async function start() {
+  await waitForDb();
+  app.listen(PORT, () => {
+    console.log(`[server] listening on port ${PORT}`);
+  });
+}
+
+start().catch((err) => {
+  console.error('[server] failed to start:', err);
+  process.exit(1);
+});

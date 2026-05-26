@@ -1,0 +1,44 @@
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: flash-wiki-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-flash}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-secret}
+      POSTGRES_DB: ${POSTGRES_DB:-flashwiki}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    networks:
+      - flash-net
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-flash} -d ${POSTGRES_DB:-flashwiki}"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: flash-wiki-app
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:-flash}:${POSTGRES_PASSWORD:-secret}@db:5432/${POSTGRES_DB:-flashwiki}
+      PORT: ${PORT:-3000}
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+      GITHUB_TOKEN: ${GITHUB_TOKEN:-}
+      GITHUB_REPO: ${GITHUB_REPO:-}
+    ports:
+      - "${PORT:-3000}:3000"
+    networks:
+      - flash-net
+
+volumes:
+  pgdata:
+
+networks:
+  flash-net:

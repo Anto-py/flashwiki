@@ -1,0 +1,131 @@
+:root {
+  --bg: #1f1f2e;
+  --bg-card: #2a2a3d;
+  --fg: #f0f0f5;
+  --fg-dim: #a0a0b8;
+  --accent: #ffd166;
+  --accent-red: #ef476f;
+  --accent-green: #06d6a0;
+  --accent-blue: #118ab2;
+  --border: #3a3a52;
+  --radius: 12px;
+  --gap: 16px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html, body, #root {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  background: var(--bg);
+  color: var(--fg);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-size: 16px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+button {
+  font-family: inherit;
+  font-size: inherit;
+  color: var(--fg);
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 12px 20px;
+  cursor: pointer;
+  transition: transform 0.08s ease, background 0.12s ease;
+}
+
+button:hover {
+  background: var(--border);
+}
+
+button:active {
+  transform: scale(0.97);
+}
+
+button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  filter: grayscale(0.3);
+}
+
+button:disabled:hover {
+  background: var(--bg-card);
+  transform: none;
+}
+
+button.primary {
+  background: var(--accent);
+  color: #1f1f2e;
+  border-color: var(--accent);
+  font-weight: 600;
+}
+
+a {
+  color: var(--accent);
+  text-decoration: none;
+}
+
+.screen {
+  max-width: 560px;
+  margin: 0 auto;
+  padding: 24px 20px;
+  padding-bottom: 60px;
+  min-height: 100%;
+}
+
+.screen-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.screen-title {
+  font-size: 22px;
+  font-weight: 600;
+  margin: 0;
+}
+
+.gear-btn {
+  background: transparent;
+  border: none;
+  font-size: 20px;
+  cursor: pointer;
+  padding: 6px 8px;
+  color: var(--fg-dim);
+}
+
+.card-tile {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 18px;
+  margin-bottom: var(--gap);
+}
+
+.dim {
+  color: var(--fg-dim);
+}
+
+.error-banner {
+  background: rgba(239, 71, 111, 0.15);
+  border: 1px solid var(--accent-red);
+  color: var(--accent-red);
+  border-radius: var(--radius);
+  padding: 12px 16px;
+  margin: 16px 0;
+}
+
+.center {
+  text-align: center;
+}
+
+.stack > * + * {
+  margin-top: var(--gap);
+}
