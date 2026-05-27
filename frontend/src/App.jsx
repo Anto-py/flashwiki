@@ -17,10 +17,11 @@ function Layout() {
   const [pendingFormState, setPendingFormState] = useState(null);
 
   useEffect(() => {
+    if (!hasToken) return;
     getWikiFiles()
       .then((r) => setWikiFiles(r.files))
       .catch(() => {});
-  }, []);
+  }, [hasToken]);
 
   const requestEdit = useCallback(
     (card) => {
@@ -61,6 +62,10 @@ function Layout() {
   };
 
   const requestLogin = useCallback(() => setLoginOpen(true), []);
+
+  if (!hasToken) {
+    return <LoginModal onLogin={handleLogin} canCancel={false} />;
+  }
 
   return (
     <>

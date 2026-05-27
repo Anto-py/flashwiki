@@ -10,6 +10,7 @@ import summaryRouter from './routes/summary.js';
 import settingsRouter from './routes/settings.js';
 import authRouter from './routes/auth.js';
 import cardsRouter from './routes/cards.js';
+import { requireAuth } from './lib/auth.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const PORT = Number(process.env.PORT) || 3000;
@@ -25,6 +26,13 @@ app.use(cors());
 app.use(express.json());
 
 app.get('/api/health', (_req, res) => res.json({ ok: true }));
+
+const PUBLIC_API_PATHS = new Set(['/api/health', '/api/auth/login']);
+app.use((req, res, next) => {
+  if (!req.path.startsWith('/api/')) return next();
+  if (PUBLIC_API_PATHS.has(req.path)) return next();
+  return requireAuth(req, res, next);
+});
 
 app.use('/api/dashboard', dashboardRouter);
 app.use('/api/session', sessionRouter);

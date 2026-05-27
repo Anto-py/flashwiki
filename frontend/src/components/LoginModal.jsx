@@ -1,6 +1,6 @@
 import { useState } from 'react';
 
-export default function LoginModal({ onLogin, onClose }) {
+export default function LoginModal({ onLogin, onClose, canCancel = true }) {
   const [password, setPassword] = useState('');
   const [error, setError] = useState(null);
   const [busy, setBusy] = useState(false);
@@ -32,7 +32,7 @@ export default function LoginModal({ onLogin, onClose }) {
         padding: 16,
       }}
       onClick={(e) => {
-        if (e.target === e.currentTarget) onClose?.();
+        if (canCancel && e.target === e.currentTarget) onClose?.();
       }}
     >
       <form
@@ -49,9 +49,11 @@ export default function LoginModal({ onLogin, onClose }) {
           gap: 14,
         }}
       >
-        <h2 style={{ margin: 0 }}>Connexion</h2>
+        <h2 style={{ margin: 0 }}>{canCancel ? 'Connexion' : 'FlashWiki'}</h2>
         <p className="dim" style={{ margin: 0, fontSize: 14 }}>
-          Mot de passe requis pour créer, éditer ou supprimer des cartes.
+          {canCancel
+            ? 'Mot de passe requis pour créer, éditer ou supprimer des cartes.'
+            : 'Mot de passe requis pour accéder à l\'application.'}
         </p>
         <input
           type="password"
@@ -65,7 +67,9 @@ export default function LoginModal({ onLogin, onClose }) {
           <p style={{ color: 'var(--danger, #e57373)', margin: 0, fontSize: 14 }}>{error}</p>
         )}
         <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
-          <button type="button" onClick={onClose} disabled={busy}>Annuler</button>
+          {canCancel && (
+            <button type="button" onClick={onClose} disabled={busy}>Annuler</button>
+          )}
           <button type="submit" disabled={busy}>{busy ? '…' : 'Se connecter'}</button>
         </div>
       </form>
