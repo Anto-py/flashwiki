@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useNavigate, useSearchParams, useOutletContext } from 'react-router-dom';
 import { getSessionCards, rateCard } from '../api/client.js';
 import Card from '../components/Card.jsx';
 import { useOfflineQueue } from '../hooks/useOfflineQueue.js';
@@ -14,6 +14,7 @@ const RATING_BUTTONS = [
 export default function ReviewScreen() {
   const navigate = useNavigate();
   const [params] = useSearchParams();
+  const { requestEdit, requestCreate } = useOutletContext() || {};
   const theme = params.get('theme');
   const limitParam = Number(params.get('limit')) || null;
   const aheadParam = params.get('ahead') === '1';
@@ -98,6 +99,23 @@ export default function ReviewScreen() {
         explanation={current.explanation}
         type={current.type}
       />
+
+      <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end', fontSize: 13 }}>
+        <button
+          type="button"
+          onClick={() => requestEdit?.(current)}
+          style={{ background: 'transparent', border: '1px solid var(--border)', padding: '6px 10px' }}
+        >
+          Éditer
+        </button>
+        <button
+          type="button"
+          onClick={() => requestCreate?.(current.source_file)}
+          style={{ background: 'transparent', border: '1px solid var(--border)', padding: '6px 10px' }}
+        >
+          + sur ce thème
+        </button>
+      </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 8 }}>
         {RATING_BUTTONS.map((b) => (

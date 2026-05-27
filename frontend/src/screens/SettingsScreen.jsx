@@ -1,13 +1,17 @@
 import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { getSettings, updateSettings } from '../api/client.js';
+import { useNavigate, useOutletContext } from 'react-router-dom';
+import { getSettings, updateSettings, reshuffleCards } from '../api/client.js';
 
 export default function SettingsScreen() {
   const navigate = useNavigate();
+  const { token, hasToken, requestLogin, logout } = useOutletContext() || {};
   const [value, setValue] = useState(20);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState(null);
+
+  const [shuffling, setShuffling] = useState(false);
+  const [shuffleStatus, setShuffleStatus] = useState(null);
 
   useEffect(() => {
     getSettings()
@@ -31,6 +35,23 @@ export default function SettingsScreen() {
       setError(e.message);
     } finally {
       setSaving(false);
+    }
+  }
+
+  async function handleReshuffle() {
+    if (!hasToken) {
+      requestLogin?.();
+      return;
+    }
+    setShuffling(true);
+    setShuffleStatus(null);
+    try {
+      const r = await reshuffleCards(token);
+      setShuffleStatus(`✓ ${r.total} cartes neuves mélangées sur ${Object.keys(r.topics || {}).length} thèmes`);
+    } catch (e) {
+      setShuffleStatus(`✗ ${e.message}`);
+    } finally {
+      setShuffling(false);
     }
   }
 
@@ -70,6 +91,34 @@ export default function SettingsScreen() {
       <button className="primary" onClick={handleSave} disabled={saving}>
         {saving ? 'Enregistrement…' : saved ? '✓ Enregistré' : 'Enregistrer'}
       </button>
+
+      <div className="card-tile">
+        <label style={{ display: 'block', marginBottom: 12 }}>
+          Mélange des nouvelles cartes
+        </label>
+        <p className="dim" style={{ fontSize: 13, marginTop: 0, marginBottom: 12 }}>
+          Recalcule l'ordre d'introduction des cartes <em>neuves</em> selon un tourniquet de thèmes
+          (un dossier de <code>_wiki/</code> = un paquet, alternance équiprobable). À lancer après
+          un gros import pour éviter de voir 30 cartes du même sujet d'affilée.
+        </p>
+        <button onClick={handleReshuffle} disabled={shuffling}>
+          {shuffling ? 'Mélange…' : hasToken ? 'Mélanger maintenant' : 'Se connecter pour mélanger'}
+        </button>
+        {shuffleStatus && (
+          <p style={{ fontSize: 13, marginTop: 12, color: shuffleStatus.startsWith('✓') ? 'var(--accent-green, #4caf50)' : 'var(--danger, #e57373)' }}>
+            {shuffleStatus}
+          </p>
+        )}
+      </div>
+
+      {hasToken && (
+        <button
+          onClick={logout}
+          style={{ background: 'transparent', border: '1px solid var(--border)', fontSize: 13 }}
+        >
+          Se déconnecter
+        </button>
+      )}
     </div>
   );
 }

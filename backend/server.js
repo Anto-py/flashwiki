@@ -8,6 +8,8 @@ import dashboardRouter from './routes/dashboard.js';
 import sessionRouter from './routes/session.js';
 import summaryRouter from './routes/summary.js';
 import settingsRouter from './routes/settings.js';
+import authRouter from './routes/auth.js';
+import cardsRouter from './routes/cards.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const PORT = Number(process.env.PORT) || 3000;
@@ -28,6 +30,8 @@ app.use('/api/dashboard', dashboardRouter);
 app.use('/api/session', sessionRouter);
 app.use('/api/summary', summaryRouter);
 app.use('/api/settings', settingsRouter);
+app.use('/api/auth', authRouter);
+app.use('/api/cards', cardsRouter);
 
 const frontendDist = path.resolve(__dirname, '..', 'frontend', 'dist');
 app.use(express.static(frontendDist));

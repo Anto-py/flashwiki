@@ -1,25 +1,5 @@
 import { useState, useEffect } from 'react';
-
-function renderCloze(text) {
-  return text.split(/(___)/g).map((part, i) =>
-    part === '___' ? (
-      <span key={i} style={{ borderBottom: '2px solid var(--accent)', padding: '0 12px' }}>&nbsp;</span>
-    ) : (
-      <span key={i}>{part}</span>
-    )
-  );
-}
-
-function renderBackCloze(text) {
-  const parts = text.split(/(\*\*[^*]+\*\*)/g);
-  return parts.map((p, i) =>
-    /^\*\*[^*]+\*\*$/.test(p) ? (
-      <strong key={i} style={{ color: 'var(--accent)' }}>{p.slice(2, -2)}</strong>
-    ) : (
-      <span key={i}>{p}</span>
-    )
-  );
-}
+import { renderClozeFront, renderClozeBack } from '../lib/cloze.jsx';
 
 export default function Card({ front, back, explanation, type, onFlip }) {
   const [flipped, setFlipped] = useState(false);
@@ -54,11 +34,11 @@ export default function Card({ front, back, explanation, type, onFlip }) {
         }}
       >
         <Face front>
-          {type === 'cloze' ? renderCloze(front) : <span>{front}</span>}
+          {type === 'cloze' ? renderClozeFront(front) : <span>{front}</span>}
         </Face>
         <Face>
           {type === 'cloze' ? (
-            <div>{renderBackCloze(back)}</div>
+            <div>{renderClozeBack(back)}</div>
           ) : (
             <div>{back}</div>
           )}

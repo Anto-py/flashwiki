@@ -47,7 +47,7 @@ router.get('/cards', async (req, res, next) => {
         newParams.push(`%/${theme}/%`);
         newSql += ` AND source_file LIKE $${newParams.length}`;
       }
-      newSql += ` ORDER BY created_at ASC LIMIT $${newParams.length + 1}`;
+      newSql += ` ORDER BY intro_order ASC NULLS LAST, created_at ASC LIMIT $${newParams.length + 1}`;
       newParams.push(Math.min(remaining, newQuotaLeft));
       const newRes = await query(newSql, newParams);
       newRows = newRes.rows;

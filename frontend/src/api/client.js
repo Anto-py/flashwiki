@@ -1,17 +1,18 @@
 const BASE = '/api';
 
-async function request(path, options = {}) {
-  const res = await fetch(`${BASE}${path}`, {
-    headers: { 'Content-Type': 'application/json' },
-    ...options,
-  });
+async function request(path, options = {}, token = null) {
+  const headers = { 'Content-Type': 'application/json', ...(options.headers || {}) };
+  if (token) headers['X-Auth-Token'] = token;
+  const res = await fetch(`${BASE}${path}`, { ...options, headers });
   if (!res.ok) {
     let message = `HTTP ${res.status}`;
     try {
       const body = await res.json();
       if (body?.error) message = body.error;
     } catch {}
-    throw new Error(message);
+    const err = new Error(message);
+    err.status = res.status;
+    throw err;
   }
   if (res.status === 204) return null;
   return res.json();
@@ -36,3 +37,20 @@ export const getSummary = (cardIds) =>
 export const getSettings = () => request('/settings');
 export const updateSettings = (data) =>
   request('/settings', { method: 'PUT', body: JSON.stringify(data) });
+
+export const login = (password) =>
+  request('/auth/login', { method: 'POST', body: JSON.stringify({ password }) });
+
+export const getWikiFiles = () => request('/cards/wiki-files');
+
+export const createCard = (payload, token) =>
+  request('/cards', { method: 'POST', body: JSON.stringify(payload) }, token);
+
+export const updateCard = (id, payload, token) =>
+  request(`/cards/${id}`, { method: 'PUT', body: JSON.stringify(payload) }, token);
+
+export const deleteCard = (id, token) =>
+  request(`/cards/${id}`, { method: 'DELETE' }, token);
+
+export const reshuffleCards = (token) =>
+  request('/cards/reshuffle', { method: 'POST' }, token);
