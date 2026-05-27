@@ -1,10 +1,23 @@
 const BASE = '/api';
+const TOKEN_STORAGE_KEY = 'flash_wiki_auth_token';
 
-async function request(path, options = {}, token = null) {
+function getStoredToken() {
+  try {
+    return localStorage.getItem(TOKEN_STORAGE_KEY);
+  } catch {
+    return null;
+  }
+}
+
+async function request(path, options = {}, token = undefined) {
+  const effectiveToken = token !== undefined ? token : getStoredToken();
   const headers = { 'Content-Type': 'application/json', ...(options.headers || {}) };
-  if (token) headers['X-Auth-Token'] = token;
+  if (effectiveToken) headers['X-Auth-Token'] = effectiveToken;
   const res = await fetch(`${BASE}${path}`, { ...options, headers });
   if (!res.ok) {
+    if (res.status === 401) {
+      try { localStorage.removeItem(TOKEN_STORAGE_KEY); } catch {}
+    }
     let message = `HTTP ${res.status}`;
     try {
       const body = await res.json();
@@ -39,7 +52,7 @@ export const updateSettings = (data) =>
   request('/settings', { method: 'PUT', body: JSON.stringify(data) });
 
 export const login = (password) =>
-  request('/auth/login', { method: 'POST', body: JSON.stringify({ password }) });
+  request('/auth/login', { method: 'POST', body: JSON.stringify({ password }) }, null);
 
 export const getWikiFiles = () => request('/cards/wiki-files');
 
