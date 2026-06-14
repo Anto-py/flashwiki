@@ -2,8 +2,12 @@ import { pool } from '../db/client.js';
 
 function topicOf(sourceFile) {
   if (!sourceFile) return '_root_';
-  const parts = sourceFile.split('/');
-  return parts.length > 1 ? parts[0] : '_root_';
+  // Thème = dossier parent de la fiche (hors namespace hérité « Memoire/_wiki/ »).
+  // Granularité équilibrée pour l'entrelacement — surtout PAS le dossier de 1er
+  // niveau, où « pedagogie » écrase tout (~80 % des cartes).
+  const rel = sourceFile.replace(/^Memoire\/_wiki\//, '');
+  const parts = rel.split('/');
+  return parts.length > 1 ? parts.slice(0, -1).join('/') : '_root_';
 }
 
 function fisherYates(arr) {
@@ -14,21 +18,26 @@ function fisherYates(arr) {
   return arr;
 }
 
-function tourniquet(packs) {
+function interleave(packs) {
   const topics = Object.keys(packs);
-  fisherYates(topics);
   for (const t of topics) fisherYates(packs[t]);
 
+  // Entrelacement pondéré : à chaque pas, une carte du thème le plus fourni
+  // PARMI ceux différents du précédent. Garantit zéro thème répété d'affilée
+  // tant qu'aucun thème ne dépasse la moitié des cartes restantes ; sinon la
+  // traîne de ce thème majoritaire sort en fin de liste (inévitable). Un simple
+  // round-robin entasse au contraire tout le gros thème à la fin.
   const out = [];
-  let remaining = true;
-  while (remaining) {
-    remaining = false;
-    for (const t of topics) {
-      if (packs[t].length > 0) {
-        out.push(packs[t].shift());
-        remaining = true;
-      }
-    }
+  let prev = null;
+  while (true) {
+    const avail = topics.filter((t) => packs[t].length > 0);
+    if (avail.length === 0) break;
+    let cands = avail.filter((t) => t !== prev);
+    if (cands.length === 0) cands = avail; // forcé : un seul thème restant
+    cands.sort((a, b) => packs[b].length - packs[a].length);
+    const pick = cands[0];
+    out.push(packs[pick].shift());
+    prev = pick;
   }
   return out;
 }
@@ -44,7 +53,7 @@ export async function recomputeIntroOrder() {
     (packs[t] ||= []).push(row.id);
   }
 
-  const orderedIds = tourniquet(packs);
+  const orderedIds = interleave(packs);
 
   const client = await pool.connect();
   try {
